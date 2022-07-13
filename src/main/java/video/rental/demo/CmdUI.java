@@ -5,18 +5,11 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
-import java.util.function.Consumer;
-import java.util.function.Supplier;
-
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceException;
-import javax.persistence.TypedQuery;
 
 public class CmdUI {
-    // JPA EntityManager
-    private static final EntityManager em = PersistenceManager.INSTANCE.getEntityManager();
-
     private static final Scanner scanner = new Scanner(System.in);
+    
+    Repository repository = new RepositoryDBImpl();
 
     public void start() {
         scanner.useDelimiter("\\r\\n|\\n");
@@ -50,7 +43,7 @@ public class CmdUI {
         System.out.println("Enter customer code: ");
         int customerCode = scanner.nextInt();
 
-        Customer foundCustomer = findCustomerById(customerCode);
+        Customer foundCustomer = repository.findCustomerById(this, customerCode);
         if (foundCustomer == null) {
             throw new IllegalArgumentException("No such customer exists");
         }
@@ -64,13 +57,13 @@ public class CmdUI {
         }
 
         foundCustomer.setRentals(new ArrayList<Rental>());
-        saveCustomer(foundCustomer);
+        repository.saveCustomer(this, foundCustomer);
     }
 
     public void returnVideo() {
         System.out.println("Enter customer code: ");
         int customerCode = scanner.nextInt();
-        Customer foundCustomer = findCustomerById(customerCode);
+        Customer foundCustomer = repository.findCustomerById(this, customerCode);
         if (foundCustomer == null) {
             throw new IllegalArgumentException("No such customer exists");
         }
@@ -84,18 +77,18 @@ public class CmdUI {
             if (rental.getVideo().getTitle().equals(videoTitle) && rental.getVideo().isRented()) {
                 Video video = rental.returnVideo();
                 video.setRented(false);
-                saveVideo(video);
+                repository.saveVideo(this, video);
                 break;
             }
         }
 
-        saveCustomer(foundCustomer);
+        repository.saveCustomer(this, foundCustomer);
     }
 
     public void listVideos() {
         System.out.println("List of videos");
 
-        for (Video video : findAllVideos()) {
+        for (Video video : repository.findAllVideos()) {
             System.out.println("Video type: " + video.getVideoType() + ", "
                     + "Price code: " + video.getPriceCode() + ", "
                     + "Rating: " + video.getVideoRating() + ", "
@@ -107,7 +100,7 @@ public class CmdUI {
     public void listCustomers() {
         System.out.println("List of customers");
 
-        for (Customer customer : findAllCustomers()) {
+        for (Customer customer : repository.findAllCustomers()) {
             System.out.println("ID: " + customer.getCode() + ", "
                     + "Name: " + customer.getName() + ", "
                     + "Rentals: " + customer.getRentals().size());
@@ -124,7 +117,7 @@ public class CmdUI {
         System.out.println("Enter customer code: ");
         int code = scanner.nextInt();
 
-        Customer foundCustomer = findCustomerById(code);
+        Customer foundCustomer = repository.findCustomerById(this, code);
         if (foundCustomer == null) {
             throw new IllegalArgumentException("No such customer exists");
         }
@@ -136,22 +129,22 @@ public class CmdUI {
         System.out.println("Enter customer code: ");
         int code = scanner.nextInt();
 
-        Customer foundCustomer = findCustomerById(code);
+        Customer foundCustomer = repository.findCustomerById(this, code);
         if (foundCustomer == null)
             throw new IllegalArgumentException("No such customer exists");
 
         System.out.println("Enter video title to rent: ");
         String videoTitle = scanner.next();
 
-        Video foundVideo = findVideoByTitle(videoTitle);
+        Video foundVideo = repository.findVideoByTitle(this, videoTitle);
         if (foundVideo == null)
             throw new IllegalArgumentException("Cannot find the video " + videoTitle);
         if (foundVideo.isRented())
             throw new IllegalStateException("The video " + videoTitle + " is already rented");
 
         if (foundVideo.rentFor(foundCustomer)) {
-            saveVideo(foundVideo);
-            saveCustomer(foundCustomer);
+            repository.saveVideo(this, foundVideo);
+            repository.saveCustomer(this, foundCustomer);
         } else {
             throw new IllegalStateException("Customer " + foundCustomer.getName()
                     + " cannot rent this video because he/she is under age.");
@@ -166,7 +159,7 @@ public class CmdUI {
             System.out.println("Enter customer code: ");
             int code = scanner.nextInt();
             // dirty hack for the moment
-            if (findAllCustomers().stream().mapToInt(Customer::getCode).anyMatch(c -> c == code)) {
+            if (repository.findAllCustomers().stream().mapToInt(Customer::getCode).anyMatch(c -> c == code)) {
                 throw new IllegalArgumentException("Customer code " + code + " already exists");
             }
 
@@ -178,7 +171,7 @@ public class CmdUI {
             } catch (Exception ignored) {
             }
 
-            saveCustomer(new Customer(code, name, LocalDate.parse(dateOfBirth)));
+            repository.saveCustomer(this, new Customer(code, name, LocalDate.parse(dateOfBirth)));
         } else {
             System.out.println("Enter video title to register: ");
             String title = scanner.next();
@@ -200,11 +193,11 @@ public class CmdUI {
             else throw new IllegalArgumentException("No such rating " + videoRating);
 
             // dirty hack for the moment
-            if (findAllVideos().stream().map(Video::getTitle).anyMatch(t -> t.equals(title))) {
+            if (repository.findAllVideos().stream().map(Video::getTitle).anyMatch(t -> t.equals(title))) {
                 throw new IllegalArgumentException("Video " + title + " already exists");
             }
 
-            saveVideo(new Video(title, videoType, priceCode, rating, registeredDate));
+            repository.saveVideo(this, new Video(title, videoType, priceCode, rating, registeredDate));
         }
     }
 
@@ -227,9 +220,9 @@ public class CmdUI {
         Customer james = new Customer(0, "James", LocalDate.parse("1975-05-15"));
         Customer brown = new Customer(1, "Brown", LocalDate.parse("2002-03-17"));
         Customer shawn = new Customer(2, "Shawn", LocalDate.parse("2010-11-11"));
-        saveCustomer(james);
-        saveCustomer(brown);
-        saveCustomer(shawn);
+        repository.saveCustomer(this, james);
+        repository.saveCustomer(this, brown);
+        repository.saveCustomer(this, shawn);
 
         Video v1 = new Video("V1", Video.CD, Video.REGULAR, Rating.FIFTEEN, LocalDate.of(2018, 1, 1));
         v1.setRented(true);
@@ -237,9 +230,9 @@ public class CmdUI {
         v2.setRented(true);
         Video v3 = new Video("V3", Video.VHS, Video.NEW_RELEASE, Rating.EIGHTEEN, LocalDate.of(2018, 3, 1));
 
-        saveVideo(v1);
-        saveVideo(v2);
-        saveVideo(v3);
+        repository.saveVideo(this, v1);
+        repository.saveVideo(this, v2);
+        repository.saveVideo(this, v3);
 
         Rental r1 = new Rental(v1);
         Rental r2 = new Rental(v2);
@@ -248,59 +241,8 @@ public class CmdUI {
         rentals.add(r1);
         rentals.add(r2);
         james.setRentals(rentals);
-        saveCustomer(james);
+        repository.saveCustomer(this, james);
     }
 
-    private void saveCustomer(Customer customer) {
-        doIt(customer, em::persist);
-    }
-
-    private void saveVideo(Video video) {
-        doIt(video, em::persist);
-    }
-
-    /*
-     * Database Access private methods
-     */
-
-    private List<Customer> findAllCustomers() {
-        TypedQuery<Customer> query = em.createQuery("SELECT c FROM Customer c", Customer.class);
-        return query.getResultList();
-    }
-
-    private List<Video> findAllVideos() {
-        TypedQuery<Video> query = em.createQuery("SELECT c FROM Video c", Video.class);
-        return query.getResultList();
-    }
-
-    private <T> T find(Supplier<T> action) {
-        T value = null;
-        try {
-            em.getTransaction().begin();
-            value = action.get();
-            em.getTransaction().commit();
-        } catch (PersistenceException ex) {
-            ex.printStackTrace();
-        }
-        return value;
-    }
-
-    private Customer findCustomerById(int code) {
-        return find(() -> em.find(Customer.class, code));
-    }
-
-    private Video findVideoByTitle(String title) {
-        return find(() -> em.find(Video.class, title));
-    }
-
-    private <T> void doIt(T value, Consumer<T> action) {
-        try {
-            em.getTransaction().begin();
-            action.accept(value);
-            em.getTransaction().commit();
-        } catch (PersistenceException ex) {
-            ex.printStackTrace();
-        }
-    }
-
+   
 }
