@@ -1,4 +1,4 @@
-package video.rental.demo;
+package video.rental.demo.domain;
 
 import java.time.LocalDate;
 import java.util.ArrayList;

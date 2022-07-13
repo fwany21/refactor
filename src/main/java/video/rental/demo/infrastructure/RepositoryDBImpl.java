@@ -1,4 +1,4 @@
-package video.rental.demo;
+package video.rental.demo.infrastructure;
 
 import java.util.List;
 import java.util.function.Consumer;
@@ -7,6 +7,10 @@ import java.util.function.Supplier;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceException;
 import javax.persistence.TypedQuery;
+
+import video.rental.demo.domain.Customer;
+import video.rental.demo.domain.Repository;
+import video.rental.demo.domain.Video;
 
 public class RepositoryDBImpl implements Repository {
 
@@ -30,22 +34,22 @@ public class RepositoryDBImpl implements Repository {
 	}
 
 	@Override
-	public Customer findCustomerById(CmdUI cmdUI, int code) {
+	public Customer findCustomerById(int code) {
 		return find(() -> getEm().find(Customer.class, code));
 	}
 
 	@Override
-	public Video findVideoByTitle(CmdUI cmdUI, String title) {
+	public Video findVideoByTitle(String title) {
 		return find(() -> getEm().find(Video.class, title));
 	}
 
 	@Override
-	public void saveCustomer(CmdUI cmdUI, Customer customer) {
+	public void saveCustomer(Customer customer) {
 		doIt(customer, getEm()::persist);
 	}
 
 	@Override
-	public void saveVideo(CmdUI cmdUI, Video video) {
+	public void saveVideo(Video video) {
 		doIt(video, getEm()::persist);
 	}
 
