@@ -110,17 +110,4 @@ public class Video {
         // determine if customer is under legal age for rating
         return videoRating.isUnderAge(age);
     }
-    
-    public double computeCharge(int daysRented) {
-		return priceStrategy.computeCharge(daysRented);
-	}
-
-	public int getPoint(int daysRented) {
-		int eachPoint = priceStrategy.getPoint();
-	
-		if (daysRented > getDaysRentedLimit())
-			eachPoint -= Math.min(eachPoint, getLateReturnPointPenalty());
-		return eachPoint;
-	}
-
 }
