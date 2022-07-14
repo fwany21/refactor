@@ -1,9 +1,6 @@
 package video.rental.demo.domain;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.time.LocalDate;
-import java.util.Calendar;
 import java.util.List;
 
 import javax.persistence.Entity;
@@ -100,9 +97,7 @@ public class Video {
         if (!isUnderAge(customer)) {
             setRented(true);
             Rental rental = new Rental(this);
-            List<Rental> customerRentals = customer.getRentals();
-            customerRentals.add(rental);
-            customer.setRentals(customerRentals);
+            customer.addRental(rental);
             return true;
         } else {
             return false;
@@ -110,40 +105,22 @@ public class Video {
     }
 
     public boolean isUnderAge(Customer customer) {
-        // calculate customer's age in years and months
-
-        // parse customer date of birth
-        Calendar calDateOfBirth = Calendar.getInstance();
-        try {
-            calDateOfBirth.setTime(new SimpleDateFormat("yyyy-MM-dd").parse(customer.getDateOfBirth().toString()));
-        } catch (ParseException e) {
-            e.printStackTrace();
-        }
-
-        // get current date
-        Calendar calNow = Calendar.getInstance();
-        calNow.setTime(new java.util.Date());
-
-        // calculate age different in years and months
-        int ageYr = (calNow.get(Calendar.YEAR) - calDateOfBirth.get(Calendar.YEAR));
-        int ageMo = (calNow.get(Calendar.MONTH) - calDateOfBirth.get(Calendar.MONTH));
-
-        // decrement age in years if month difference is negative
-        if (ageMo < 0) {
-            ageYr--;
-        }
-        int age = ageYr;
+        int age = customer.getAge();
 
         // determine if customer is under legal age for rating
-        switch (videoRating) {
-            case TWELVE:
-                return age < 12;
-            case FIFTEEN:
-                return age < 15;
-            case EIGHTEEN:
-                return age < 18;
-            default:
-                return false;
-        }
+        return videoRating.isUnderAge(age);
     }
+    
+    public double computeCharge(int daysRented) {
+		return priceStrategy.computeCharge(daysRented);
+	}
+
+	public int getPoint(int daysRented) {
+		int eachPoint = priceStrategy.getPoint();
+	
+		if (daysRented > getDaysRentedLimit())
+			eachPoint -= Math.min(eachPoint, getLateReturnPointPenalty());
+		return eachPoint;
+	}
+
 }

@@ -94,4 +94,13 @@ public class Rental {
         int days = (int) (ChronoUnit.HOURS.between(getRentDate(), end) / 24);
         return days == 0 ? 1 : days + 1;
     }
+
+    public int getPriceCode() {
+        return video.getPriceCode();
+    }
+
+    public String getTitle() {
+        return video.getTitle();
+    }
+
 }

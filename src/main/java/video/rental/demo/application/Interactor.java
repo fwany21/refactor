@@ -31,11 +31,11 @@ public class Interactor {
 	            + "Name: " + foundCustomer.getName() + ", "
 	            + "Rentals: " + foundCustomer.getRentals().size() + "\n");
 	    for (Rental rental : foundCustomer.getRentals()) {
-	        builder.append("\tTitle: " + rental.getVideo().getTitle() + ", "
-	                + "Price Code: " + rental.getVideo().getPriceCode());
+	        builder.append("\tTitle: " + rental.getTitle() + ", "
+	                + "Price Code: " + rental.getPriceCode());
 	    }
 	
-	    foundCustomer.setRentals(new ArrayList<Rental>());
+	    foundCustomer.clearRentals();
 	    getRepository().saveCustomer(foundCustomer);
 	    
 	    return builder.toString();
@@ -83,13 +83,13 @@ public class Interactor {
 	    }
 	}
 
-	public void getCustomerReposrt(int code) {
+	public String getCustomerReposrt(int code) {
 		Customer foundCustomer = getRepository().findCustomerById(code);
 	    if (foundCustomer == null) {
 	        throw new IllegalArgumentException("No such customer exists");
 	    }
 	
-	    System.out.println(foundCustomer.getReport());
+	    return foundCustomer.getReport();
 	}
 
 	public void rentVideo(int code, String videoTitle) {

@@ -77,7 +77,7 @@ public class CmdUI {
         System.out.println("Enter customer code: ");
         int code = scanner.nextInt();
 
-        interactor.getCustomerReposrt(code);
+        System.out.print(interactor.getCustomerReposrt(code));
     }
 
 	public void rentVideo() {

@@ -1,7 +1,10 @@
 package video.rental.demo.domain;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 
 import javax.persistence.CascadeType;
@@ -52,8 +55,15 @@ public class Customer {
 		return rentals;
 	}
 
-	public void setRentals(List<Rental> rentals) {
-		this.rentals = rentals;
+	public void addRental(Rental rental) {
+		if (this.rentals == null) {
+			rentals = new ArrayList<>();
+		}
+		rentals.add(rental);
+	}
+
+	public void clearRentals() {
+		this.rentals = new ArrayList<Rental>();
 	}
 
 	public String getReport() {
@@ -107,6 +117,33 @@ public class Customer {
 		}
 
 		return result;
+	}
+
+	int getAge() {
+	    // calculate customer's age in years and months
+	
+	    // parse customer date of birth
+	    Calendar calDateOfBirth = Calendar.getInstance();
+	    try {
+	        calDateOfBirth.setTime(new SimpleDateFormat("yyyy-MM-dd").parse(getDateOfBirth().toString()));
+	    } catch (ParseException e) {
+	        e.printStackTrace();
+	    }
+	
+	    // get current date
+	    Calendar calNow = Calendar.getInstance();
+	    calNow.setTime(new java.util.Date());
+	
+	    // calculate age different in years and months
+	    int ageYr = (calNow.get(Calendar.YEAR) - calDateOfBirth.get(Calendar.YEAR));
+	    int ageMo = (calNow.get(Calendar.MONTH) - calDateOfBirth.get(Calendar.MONTH));
+	
+	    // decrement age in years if month difference is negative
+	    if (ageMo < 0) {
+	        ageYr--;
+	    }
+	    int age = ageYr;
+	    return age;
 	}
 
 }
