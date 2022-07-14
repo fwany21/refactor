@@ -9,12 +9,13 @@ import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
 
 @Entity
-@Table(name = "VIDEO", uniqueConstraints = {@UniqueConstraint(columnNames = {"title"})})
+@Table(name = "VIDEO", uniqueConstraints = { @UniqueConstraint(columnNames = { "title" }) })
 public class Video {
     @Id
     private String title;
     private Rating videoRating;
     private int priceCode;
+    private PriceStrategy priceStrategy;
 
     public static final int REGULAR = 1;
     public static final int NEW_RELEASE = 2;
@@ -109,5 +110,21 @@ public class Video {
 
         // determine if customer is under legal age for rating
         return videoRating.isUnderAge(age);
+    }
+
+    public void setPriceStrategy(PriceStrategy price) {
+        this.priceStrategy = price;
+    }
+
+    public double computeCharge(int daysRented) {
+        return priceStrategy.computeCharge(daysRented);
+    }
+
+    public int getPoint(int daysRented) {
+        int eachPoint = priceStrategy.getPoint();
+
+        if (daysRented > getDaysRentedLimit())
+            eachPoint -= Math.min(eachPoint, getLateReturnPointPenalty());
+        return eachPoint;
     }
 }
